@@ -18,32 +18,46 @@ export const getBySymbol = (symbol) => {// פונקציה לשליפת פריט 
     return investment;
 };
 
-// פונקציה להוספת השקעה חדשה
 export const addInvestment = (newInvestment) => {
     const symbol = newInvestment.symbol.toUpperCase();
     const existingInvestment = portfolioDal.getBySymbol(symbol);
+
     if (existingInvestment !== undefined) {
-        throw new Error(`Investment with symbol ${symbol} already exists.`);
+        const index = portfolioDal.getAll().findIndex(item => item.symbol.toUpperCase() === symbol);
+        
+        const purchasePrice = newInvestment.purchasePrice !== undefined ? Number(newInvestment.purchasePrice) : existingInvestment.purchasePrice;
+        const investmentAmount = newInvestment.investmentAmount !== undefined ? Number(newInvestment.investmentAmount) : existingInvestment.investmentAmount;
+        const shares = Number((investmentAmount / purchasePrice).toFixed(3));
+
+        const updatedInvestment = {
+            ...existingInvestment,
+            purchasePrice,
+            investmentAmount,
+            shares,
+            addedAt: getFormattedDate()
+        };
+
+        return portfolioDal.updateInvestment(index, updatedInvestment);
+    } else {
+        const portfolio = portfolioDal.getAll();
+        const nextId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
+
+        const purchasePrice = Number(newInvestment.purchasePrice);
+        const investmentAmount = Number(newInvestment.investmentAmount);
+        const shares = Number((investmentAmount / purchasePrice).toFixed(3));
+
+        const addedInvestment = {
+            id: nextId,
+            symbol,
+            purchasePrice,
+            investmentAmount,
+            shares,
+            addedAt: getFormattedDate()
+        };
+
+        portfolioDal.push(addedInvestment);
+        return addedInvestment;
     }
-
-    const portfolio = portfolioDal.getAll();
-    const nextId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
-
-    const purchasePrice = Number(newInvestment.purchasePrice);
-    const investmentAmount = Number(newInvestment.investmentAmount);
-    const shares = Number((investmentAmount / purchasePrice).toFixed(3));
-
-    const addedInvestment = {
-        id: nextId,
-        symbol,
-        purchasePrice,
-        investmentAmount,
-        shares,
-        addedAt: getFormattedDate()
-    };
-
-    portfolioDal.push(addedInvestment);
-    return addedInvestment;
 };
 
 // פונקציה לעדכון השקעה לפי סמל
@@ -79,15 +93,8 @@ export const deleteInvestment = (symbol) => {
    return portfolioDal.removeStock(index);
 };
 
-// פונקציה לקניית מנייה על בסיס נתונים חיים מה-API
 export const buyStockFromQuote = async (symbol, investmentAmount) => {
     const cleanSymbol = symbol.toUpperCase();
-
-    // בדיקה אם המניה כבר קיימת בתיק
-    const existingInvestment = portfolioDal.getBySymbol(cleanSymbol);
-    if (existingInvestment !== undefined) {
-        throw new Error(`Investment with symbol ${cleanSymbol} already exists.`);
-    }
 
     // שליפת הנתונים החיים מה-API
     const liveData = await getLiveStockData(cleanSymbol);
@@ -99,24 +106,40 @@ export const buyStockFromQuote = async (symbol, investmentAmount) => {
     }
     const price = Number(priceStr);
 
-    // חישוב מזהה אוטומטי
-    const portfolio = portfolioDal.getAll();
-    const nextId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
+    const existingInvestment = portfolioDal.getBySymbol(cleanSymbol);
+    if (existingInvestment !== undefined) {
+        const index = portfolioDal.getAll().findIndex(item => item.symbol.toUpperCase() === cleanSymbol);
+        
+        const newInvestmentAmount = existingInvestment.investmentAmount + Number(investmentAmount);
+        const newSharesBought = Number(investmentAmount) / price;
+        const totalShares = Number((existingInvestment.shares + newSharesBought).toFixed(3));
 
-    // חישוב כמות המניות
-    const shares = Number((Number(investmentAmount) / price).toFixed(3));
+        const updatedStock = {
+            ...existingInvestment,
+            purchasePrice: price,
+            investmentAmount: newInvestmentAmount,
+            shares: totalShares,
+            addedAt: getFormattedDate()
+        };
 
-    const newStock = {
-        id: nextId,
-        symbol: cleanSymbol,
-        purchasePrice: price,
-        investmentAmount: Number(investmentAmount),
-        shares,
-        addedAt: getFormattedDate()
-    };
+        return portfolioDal.updateInvestment(index, updatedStock);
+    } else {
+        const portfolio = portfolioDal.getAll();
+        const nextId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
+        const shares = Number((Number(investmentAmount) / price).toFixed(3));
 
-    portfolioDal.push(newStock);
-    return newStock;
+        const newStock = {
+            id: nextId,
+            symbol: cleanSymbol,
+            purchasePrice: price,
+            investmentAmount: Number(investmentAmount),
+            shares,
+            addedAt: getFormattedDate()
+        };
+
+        portfolioDal.push(newStock);
+        return newStock;
+    }
 };
 
 // הפונקציה שמביאה את הנתונים החיים מה-API של Alpha Vantage
