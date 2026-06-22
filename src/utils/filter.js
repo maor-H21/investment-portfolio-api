@@ -17,7 +17,7 @@ export const filterArr = (array, filterBy, condition, value) => {
         '<=',
     ]
     if (!validCondition.includes(condition))
-        throw new Error('Invalid condition,only one of', validCondition.join(', '))
+        throw new Error('Invalid condition, only one of: ' + validCondition.join(', '))
 
     const filterByLower = filterBy.toLowerCase();
     const valueLower = typeof value === 'string' ? value.toLowerCase() : value
@@ -25,24 +25,23 @@ export const filterArr = (array, filterBy, condition, value) => {
 
     return array.filter(item => {
         const currentItem = item[filterByLower];
-        typeof currentItem === 'string' ? currentItem.toLowerCase() : currentItem
+        const itemVal = typeof currentItem === 'string' ? currentItem.toLowerCase() : currentItem;
 
         switch (condition) {
             case '=':
-                return currentItem === valueLower;
-            case ' !=':
-                return currentItem !== valueLower;
+                return itemVal === valueLower;
+            case '!=':
+                return itemVal !== valueLower;
             case ">":
-                return currentItem > valueLower;
+                return itemVal > valueLower;
             case "<":
-                return currentItem < valueLower;
+                return itemVal < valueLower;
             case ">=":
-                return currentItem >= valueLower;
+                return itemVal >= valueLower;
             case "<=":
-                return currentItem <= valueLower;
+                return itemVal <= valueLower;
             default:
-                false
-
+                return false;
         }
     })
 }

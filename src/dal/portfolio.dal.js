@@ -1,9 +1,7 @@
-// src/dal/portfolio.js
-
 export const portfolioData = [
-    { id: 1, symbol: 'SPX', name: 'S&P 500 Index', type: 'Index', value: 5300 },
-    { id: 2, symbol: 'NDX', name: 'NASDAQ 100', type: 'Index', value: 18500 },
-    { id: 3, symbol: 'CSPX', name: 'iShares Core S&P 500 UCITS ETF', type: 'Irish-Domiciled ETF', value: 550 }
+    { id: 1, symbol: 'SPX', purchasePrice: 5300, investmentAmount: 10600, shares: 2, addedAt: '12/06/2026' },
+    { id: 2, symbol: 'NDX', purchasePrice: 18500, investmentAmount: 18500, shares: 1, addedAt: '15/06/2026' },
+    { id: 3, symbol: 'CSPX', purchasePrice: 550, investmentAmount: 1100, shares: 2, addedAt: '18/06/2026' }
 ];
 
 // פונקציה לשליפת כל הנתונים
