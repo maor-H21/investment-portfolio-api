@@ -22,6 +22,9 @@ export const addInvestment = (newInvestment) => {
     const symbol = newInvestment.symbol.toUpperCase();
     const existingInvestment = portfolioDal.getBySymbol(symbol);
 
+    const portfolio = portfolioDal.getAll();
+    const nextId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
+
     if (existingInvestment !== undefined) {
         const index = portfolioDal.getAll().findIndex(item => item.symbol.toUpperCase() === symbol);
         
@@ -31,6 +34,7 @@ export const addInvestment = (newInvestment) => {
 
         const updatedInvestment = {
             ...existingInvestment,
+            id: nextId,
             purchasePrice,
             investmentAmount,
             shares,
@@ -39,9 +43,6 @@ export const addInvestment = (newInvestment) => {
 
         return portfolioDal.updateInvestment(index, updatedInvestment);
     } else {
-        const portfolio = portfolioDal.getAll();
-        const nextId = portfolio.length > 0 ? Math.max(...portfolio.map(p => p.id)) + 1 : 1;
-
         const purchasePrice = Number(newInvestment.purchasePrice);
         const investmentAmount = Number(newInvestment.investmentAmount);
         const shares = Number((investmentAmount / purchasePrice).toFixed(3));
